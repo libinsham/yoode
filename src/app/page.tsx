@@ -47,10 +47,7 @@ export default function Home() {
                 ))}
               </div>
             </div>
-          
-          
-            <div style={{ position:"relative", height:420, borderRadius:18, background:"linear-gradient(155deg,#1A2A45 0%,#16181D 100%)",
-               display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
+            <div style={{ position:"relative", height:420, borderRadius:18, background:"linear-gradient(155deg,#1A2A45 0%,#16181D 100%)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
               {products.slice(0,4).map((p,i) => {
                 const pos = [
                   { top:36, left:32, width:100, height:100 },
@@ -65,18 +62,6 @@ export default function Home() {
                       ? <img src={mainImg} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                       : <ProductThumb image={p.image} color={p.color} size={40} />
                     }
-<img
-          src={`/images/${img}`}
-          alt={img}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-          }}
-        />
-
-
-
                   </div>
                 );
               })}

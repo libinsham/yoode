@@ -14,23 +14,31 @@ export async function POST(req: NextRequest) {
   if (!body.name)
     return NextResponse.json({ error: "Product name is required" }, { status: 400 });
 
-  const product = await prisma.product.create({
-    data: {
-      name: body.name,
-      category: body.category || "Uncategorized",
-      price: Number(body.price) || 0,
-      moq: Number(body.moq) || 1,
-      rating: Number(body.rating) || 4.5,
-      reviews: Number(body.reviews) || 0,
-      color: body.color || "#16181D",
-      image: body.image || "tshirt",
-      imageUrl: body.imageUrl || null,
-      desc: body.desc || "",
-      images: body.images?.length
-        ? { create: body.images.map((url: string, i: number) => ({ url, order: i })) }
-        : undefined,
-    },
-    include: { images: { orderBy: { order: "asc" } } },
-  });
-  return NextResponse.json(product, { status: 201 });
+  try {
+    const product = await prisma.product.create({
+      data: {
+        name: body.name,
+        category: body.category || "Uncategorized",
+        price: Number(body.price) || 0,
+        moq: Number(body.moq) || 1,
+        rating: Number(body.rating) || 4.5,
+        reviews: Number(body.reviews) || 0,
+        color: body.color || "#16181D",
+        image: body.image || "tshirt",
+        imageUrl: body.imageUrl || null,
+        desc: body.desc || "",
+        images: body.images?.length
+          ? { create: body.images.map((url: string, i: number) => ({ url, order: i })) }
+          : undefined,
+      },
+      include: { images: { orderBy: { order: "asc" } } },
+    });
+    return NextResponse.json(product, { status: 201 });
+  } catch (err: any) {
+    console.error("Failed to create product:", err);
+    return NextResponse.json(
+      { error: "Failed to save product. " + (err?.message || "Unknown server error.") },
+      { status: 500 }
+    );
+  }
 }

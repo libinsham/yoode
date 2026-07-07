@@ -97,12 +97,16 @@ function CustomizerInner() {
   // already mounted) and its ref is available — bake the current design
   // onto it now, instead of trying to do it from the button click itself
   // (at click time, if we were in 2D mode, the viewer didn't exist yet).
+  // This also re-bakes live if the logo, its position/size, the text, or
+  // the color changes *while already viewing the 3D model* — otherwise
+  // uploading/moving a logo in 3D mode would silently do nothing, since
+  // only viewMode itself was being watched before.
   useEffect(() => {
     if (viewMode === "3d") {
       bakeDesignTo3D();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  }, [viewMode, logoDataUrl, logoScale, logoPos, customText, selectedColor]);
 
   function handleFile(file: File | null) {
     if (!file) return;
@@ -187,27 +191,37 @@ function CustomizerInner() {
       ctx.fillRect(Math.random() * 1024, Math.random() * 1024, 2, 2);
     }
 
-    // Draw logo at designed position (convert % coords to canvas px)
+    function finishBake() {
+      // Draw custom text
+      if (customText) {
+        const textY = ((100 - 75) / 100) * 1024;
+        ctx.font = "bold 52px Inter, sans-serif";
+        ctx.fillStyle = isLight(selectedColor) ? "#16181D" : "#ffffff";
+        ctx.textAlign = "center";
+        ctx.fillText(customText, 512, textY);
+      }
+      viewer3DRef.current!.applyDesign(canvas.toDataURL());
+    }
+
+    // Draw logo at designed position (convert % coords to canvas px).
+    // Images — even data URLs — decode asynchronously, so we must wait for
+    // onload before drawImage actually has pixels to draw, and only finish
+    // the bake (and hand it off to the 3D viewer) once that's done.
     if (logoDataUrl) {
       const img = new Image();
+      img.onload = () => {
+        const logoW = (logoSizePct / 100) * 620;
+        const logoH = logoW;
+        const cx = (logoPos.x / 100) * 1024 - logoW / 2;
+        const cy = ((100 - logoPos.y) / 100) * 1024 - logoH / 2;
+        ctx.drawImage(img, cx, cy, logoW, logoH);
+        finishBake();
+      };
+      img.onerror = () => finishBake();
       img.src = logoDataUrl;
-      const logoW = (logoSizePct / 100) * 620;
-      const logoH = logoW;
-      const cx = (logoPos.x / 100) * 1024 - logoW / 2;
-      const cy = ((100 - logoPos.y) / 100) * 1024 - logoH / 2;
-      ctx.drawImage(img, cx, cy, logoW, logoH);
+    } else {
+      finishBake();
     }
-
-    // Draw custom text
-    if (customText) {
-      const textY = ((100 - 75) / 100) * 1024;
-      ctx.font = "bold 52px Inter, sans-serif";
-      ctx.fillStyle = isLight(selectedColor) ? "#16181D" : "#ffffff";
-      ctx.textAlign = "center";
-      ctx.fillText(customText, 512, textY);
-    }
-
-    viewer3DRef.current.applyDesign(canvas.toDataURL());
   }
 
   function onLogoDragStart(e: React.PointerEvent) {

@@ -71,6 +71,7 @@ const ProductViewer3D = forwardRef<Viewer3DHandle, {
         } else {
           const tex = new THREE.CanvasTexture(fabricCanvas);
           tex.flipY = false;
+          tex.colorSpace = THREE.SRGBColorSpace;
           s.bodyTex = tex;
         }
         // Apply to whichever meshes already exist. If the GLB hasn't
@@ -115,6 +116,7 @@ const ProductViewer3D = forwardRef<Viewer3DHandle, {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     mount.innerHTML = "";
     mount.appendChild(renderer.domElement);
 

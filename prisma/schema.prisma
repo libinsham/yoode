@@ -42,6 +42,7 @@ model Order {
   phone      String
   address    String
   total      Int
+  status     String      @default("Received")
   createdAt  DateTime    @default(now())
   items      OrderItem[]
 }

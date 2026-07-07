@@ -32,6 +32,41 @@ export type CartItem = {
   image: string;
 };
 
+export type OrderItem = {
+  id: string;
+  productId: string;
+  name: string;
+  color: string;
+  size: string;
+  printType: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+  logo: string | null;
+  image: string;
+};
+
+export type Order = {
+  id: string;
+  customerName: string;
+  phone: string;
+  address: string;
+  total: number;
+  status: string;
+  createdAt: string;
+  items: OrderItem[];
+};
+
+export const ORDER_STATUSES = ["Received", "Processing", "Shipped", "Delivered", "Cancelled"] as const;
+
+export const ORDER_STATUS_COLORS: Record<string, string> = {
+  Received: "#1B5FB8",
+  Processing: "#B87D1B",
+  Shipped: "#6C3EF5",
+  Delivered: "#2E6B3E",
+  Cancelled: "#A3392F",
+};
+
 export function money(n: number) {
   return "₹" + Math.round(n).toLocaleString("en-IN");
 }

@@ -12,30 +12,41 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const body = await req.json();
-  // Delete old images and recreate
-  if (body.images !== undefined) {
-    await prisma.productImage.deleteMany({ where: { productId: params.id } });
+  if (!body.name)
+    return NextResponse.json({ error: "Product name is required" }, { status: 400 });
+
+  try {
+    // Delete old images and recreate
+    if (body.images !== undefined) {
+      await prisma.productImage.deleteMany({ where: { productId: params.id } });
+    }
+    const product = await prisma.product.update({
+      where: { id: params.id },
+      data: {
+        name: body.name,
+        category: body.category,
+        price: Number(body.price),
+        moq: Number(body.moq),
+        rating: Number(body.rating),
+        reviews: Number(body.reviews),
+        color: body.color,
+        image: body.image,
+        imageUrl: body.imageUrl ?? null,
+        desc: body.desc,
+        images: body.images?.length
+          ? { create: body.images.map((url: string, i: number) => ({ url, order: i })) }
+          : undefined,
+      },
+      include: { images: { orderBy: { order: "asc" } } },
+    });
+    return NextResponse.json(product);
+  } catch (err: any) {
+    console.error("Failed to update product:", err);
+    return NextResponse.json(
+      { error: "Failed to save product. " + (err?.message || "Unknown server error.") },
+      { status: 500 }
+    );
   }
-  const product = await prisma.product.update({
-    where: { id: params.id },
-    data: {
-      name: body.name,
-      category: body.category,
-      price: Number(body.price),
-      moq: Number(body.moq),
-      rating: Number(body.rating),
-      reviews: Number(body.reviews),
-      color: body.color,
-      image: body.image,
-      imageUrl: body.imageUrl ?? null,
-      desc: body.desc,
-      images: body.images?.length
-        ? { create: body.images.map((url: string, i: number) => ({ url, order: i })) }
-        : undefined,
-    },
-    include: { images: { orderBy: { order: "asc" } } },
-  });
-  return NextResponse.json(product);
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
