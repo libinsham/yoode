@@ -1,0 +1,63 @@
+// Local dev uses SQLite (zero setup). For production on Vercel + Supabase,
+// change provider to "postgresql" and set DATABASE_URL to your Supabase
+// connection string — see README.md for the exact steps.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id        String         @id @default(cuid())
+  name      String
+  category  String
+  price     Int
+  moq       Int            @default(25)
+  rating    Float          @default(4.7)
+  reviews   Int            @default(0)
+  color     String         @default("#16181D")
+  image     String         @default("tshirt")
+  imageUrl  String?
+  images    ProductImage[]
+  desc      String         @default("")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  order     Int     @default(0)
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  customerName  String
+  phone      String
+  address    String
+  total      Int
+  createdAt  DateTime    @default(now())
+  items      OrderItem[]
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  name       String
+  color      String
+  size       String
+  printType  String
+  qty        Int
+  unitPrice  Int
+  total      Int
+  logo       String? // data URL of uploaded logo (consider moving to object storage for prod)
+  image      String
+}
